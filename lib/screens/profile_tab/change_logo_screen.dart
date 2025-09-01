@@ -164,6 +164,7 @@ class _ChangeLogoScreenState extends State<ChangeLogoScreen> {
                 ),
                 appSpaces.spaceForHeight30,
                 CustomButton(text: "Update", onPressed: () {}),
+                
               ],
             ),
           ),
