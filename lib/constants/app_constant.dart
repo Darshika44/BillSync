@@ -15,9 +15,6 @@ void setLoader(WidgetRef ref, bool status) {
 }
 
 class AppConst {
-  static String stripePublishableKey = 'pk_test_AdjIGAzK2UFISynZ2Rsowlga';
-  static String stripeSecretKey = 'sk_test_ZbuI3wSBVzOeulmBT3s6Y67n';
-
   static log(key, value) {
     return logger.log("$key==============> $value");
   }
