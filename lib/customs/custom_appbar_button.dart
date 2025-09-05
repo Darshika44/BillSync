@@ -3,10 +3,7 @@ import 'package:bill_sync_app/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-Widget appbarButton({
-  required void Function()? onTap,
-  required String icon,
-}) {
+Widget appbarButton({required void Function()? onTap, required String icon}) {
   return InkWell(
     onTap: onTap,
     child: Container(
@@ -15,11 +12,7 @@ Widget appbarButton({
         border: Border.all(color: AppColor.lightGreyColor),
         borderRadius: BorderRadius.circular(50),
       ),
-      child: SvgPicture.asset(
-        icon,
-        height: 22,
-        width: 22,
-      ),
+      child: SvgPicture.asset(icon, height: 22, width: 22),
     ),
   );
 }
@@ -28,11 +21,7 @@ class CustomAppbarButton extends StatelessWidget {
   final void Function()? onTap;
   final String icon;
 
-  const CustomAppbarButton({
-    super.key,
-    this.onTap,
-    required this.icon,
-  });
+  const CustomAppbarButton({super.key, this.onTap, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +33,16 @@ class CustomAppbarButton extends StatelessWidget {
           // border: Border.all(color: AppColor.lightGreyColor),
           color: AppColor.white,
           borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 6,
+              spreadRadius: -2,
+              offset: Offset(0, 0),
+            ),
+          ],
         ),
-        child: SvgPicture.asset(
-          icon,
-          height: 20,
-          width: 20,
-        ),
+        child: SvgPicture.asset(icon, height: 20, width: 20),
       ),
     );
   }

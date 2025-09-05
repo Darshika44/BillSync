@@ -1,15 +1,20 @@
-import 'dart:io';
+// ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
 import 'package:bill_sync_app/constants/svg_constants.dart';
 import 'package:bill_sync_app/customs/custom_button.dart';
+import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/post_request_service.dart';
 import 'package:bill_sync_app/utils/common_utils.dart';
+import 'package:bill_sync_app/utils/formatter.dart';
 import 'package:bill_sync_app/utils/text_utility.dart';
+import 'package:bill_sync_app/validations/basic_validation.dart';
 import 'package:flutter/material.dart';
 import 'package:bill_sync_app/constants/color_constants.dart';
 import 'package:bill_sync_app/constants/image_constants.dart';
 import 'package:bill_sync_app/services/get_request_service.dart';
 import 'package:bill_sync_app/widgets/input_label.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bill_sync_app/customs/custom_appbar.dart';
@@ -18,13 +23,15 @@ import 'package:bill_sync_app/extensions/extension.dart';
 import 'package:bill_sync_app/utils/app_spaces.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({super.key});
+  final Function? onRefreshProfile;
+  const EditProfileScreen({super.key, this.onRefreshProfile});
 
   @override
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactNumberController =
@@ -71,6 +78,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               : {},
     );
     if (response?.statusCode == 203) {
+      widget.onRefreshProfile?.call();
       Utils.snackBar("Profile updated successfully", context);
       // _getUserDetails();
       context.pop();
@@ -159,7 +167,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   selectedProfileImage != null
                                       ? FileImage(selectedProfileImage!)
                                       : profileFromServer != null
-                                      ? NetworkImage("$profileFromServer")
+                                      ? NetworkImage(
+                                        "${ServiceUrl.baseUrl}/v1/$profileFromServer",
+                                      )
                                       : AssetImage(ImageConstant.menAvatar4),
                             ),
                           ),
@@ -191,7 +201,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 appSpaces.spaceForHeight25,
                 InkWell(
-                  onTap: (){_removeProfilePhoto(); },
+                  onTap: () {
+                    _removeProfilePhoto();
+                  },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -207,6 +219,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 appSpaces.spaceForHeight30,
                 Form(
+                  key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -218,6 +231,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         filled: true,
                         // contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                         keyboardType: TextInputType.text,
+                        maxLength: 30,
+                        textCapitalization: TextCapitalization.words,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z\s]'),
+                          ),
+                          CapitalizeWordsFormatter(),
+                        ],
+                        validator: (value) {
+                          return validateForNameField(
+                            value: value,
+                            props: "name",
+                          );
+                        },
                       ),
                       appSpaces.spaceForHeight10,
                       InputLabel(labelText: "Email"),
@@ -227,9 +254,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         controller: _emailController,
                         filled: true,
                         readonly: true,
-                        // onTap: (){
-                        //   Utils.snackBar("you can not edit this field", context);
-                        // },
+                        onTap: () {
+                          Utils.errorSnackBar(
+                            "you can not edit email",
+                            context,
+                          );
+                        },
                         // contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -241,9 +271,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         controller: _contactNumberController,
                         filled: true,
                         readonly: true,
-                        // onTap: (){
-                        //   Utils.snackBar("you can not edit this field", context);
-                        // },
+                        onTap: () {
+                          Utils.errorSnackBar(
+                            "you can not edit contact info",
+                            context,
+                          );
+                        },
                         // contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                         keyboardType: TextInputType.phone,
                       ),
@@ -253,10 +286,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       customField(
                         hintText: "Enter your address",
                         controller: _addressController,
-                        maxLines: 3,
+                        maxLines: 4,
                         filled: true,
                         // contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                         keyboardType: TextInputType.text,
+                        maxLength: 100,
                       ),
                     ],
                   ),
@@ -268,7 +302,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     text: 'Update',
                     fontsize: 16,
                     onPressed: () {
-                      _updateProfile();
+                      if (_formKey.currentState!.validate()) {
+                        _updateProfile();
+                      }
                     },
                   ),
                 ),

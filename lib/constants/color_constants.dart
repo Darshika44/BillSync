@@ -33,7 +33,7 @@ class AppColor {
   static const Color textDarkGreyColor = Color(0xFF686B6D);
   static const Color textFieldGreyColor = Color(0xFFE2E2E2);
 
-  static var blueTextColor;
+  // static var blueTextColor;
   // static const Color primary = Color(0xFF9FC2B4);
   // static const Color primary = Color(0xFFD7B2D4);
   // static const Color lightGrey = Color(0xFFD3D3D3);

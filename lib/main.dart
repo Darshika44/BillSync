@@ -47,7 +47,7 @@ class _MyAppState extends ConsumerState<MyApp> {
               child!,
               if (isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   child: const Loader(),
                 ),
             ],

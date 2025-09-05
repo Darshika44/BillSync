@@ -175,7 +175,7 @@ class TextAreaField extends StatelessWidget {
     this.onChanged,
     this.validator,
     this.initialvalue,
-    this.maxLength = 500,
+    this.maxLength = 260,
     this.margin,
     this.fontWeight = FontWeight.w600,
     this.rightIcon,

@@ -2,6 +2,7 @@ import 'package:bill_sync_app/constants/color_constants.dart';
 import 'package:bill_sync_app/customs/custom_appbar.dart';
 import 'package:bill_sync_app/extensions/extension.dart';
 import 'package:bill_sync_app/screens/auth/login_screen.dart';
+import 'package:bill_sync_app/utils/formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,10 +114,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         keyboardType: TextInputType.text,
                         filled: true,
                         maxLength: 30,
+                        textCapitalization: TextCapitalization.words,
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
                             RegExp(r'[a-zA-Z\s]'),
                           ),
+                          CapitalizeWordsFormatter(),
                         ],
                         validator: (value) {
                           return validateForNameField(
@@ -161,7 +164,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           horizontal: 20,
                           vertical: 15,
                         ),
-                        keyboardType: TextInputType.phone,
                         filled: true,
                         maxLength: 100,
                         validator: (value) {
@@ -262,6 +264,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                         ],
                       ),
+                      appSpaces.spaceForHeight25,
                     ],
                   ),
                 ),

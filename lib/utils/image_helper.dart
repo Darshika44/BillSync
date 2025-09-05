@@ -1,5 +1,6 @@
 // lib/utils/image_helper.dart
 
+import 'package:bill_sync_app/constants/app_constant.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -13,7 +14,7 @@ class ImageHelper {
         return File(pickedFile.path);
       }
     } catch (e) {
-      print('Error picking image: $e');
+      AppConst.showConsoleLog('Error picking image: $e');
     }
     return null;
   }
@@ -25,7 +26,7 @@ class ImageHelper {
         return File(pickedFile.path);
       }
     } catch (e) {
-      print('Error capturing image: $e');
+      AppConst.showConsoleLog('Error capturing image: $e');
     }
     return null;
   }

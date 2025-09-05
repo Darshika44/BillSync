@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bill_sync_app/constants/color_constants.dart';
 import 'package:bill_sync_app/constants/image_constants.dart';
+import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/get_request_service.dart';
 import 'package:bill_sync_app/utils/app_spaces.dart';
 import 'package:bill_sync_app/utils/text_utility.dart';
@@ -23,21 +24,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool isLoading = false;
   dynamic dashboardData = {};
   List vendorsList = [];
-  bool _isLoading = false;
   List<dynamic> inventoryData = [];
+  String? userName;
+  String? profileImage;
+  int? totalInvoices;
 
-  // List<double> values = [];
-  // List<String> labels = [];
+  List<double> values = [];
+  List<String> labels = [];
 
-  final List<double> values = [70, 50, 55, 40, 58, 50];
-  final List<String> labels = [
-    "Emerald",
-    "Ruby",
-    "Polki",
-    "Pearl",
-    "Ruby\nMani",
-    "Emerald\nMani",
-  ];
+  // final List<double> values = [70, 50, 55, 40, 58, 50];
+  // final List<String> labels = [
+  //   "Emerald",
+  //   "Ruby",
+  //   "Polki",
+  //   "Pearl",
+  //   "Ruby\nMani",
+  //   "Emerald\nMani",
+  // ];
 
   @override
   void initState() {
@@ -47,18 +50,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   getDashboardData() async {
     setState(() {
-      _isLoading = false;
+      isLoading = true;
     });
     dashboardData = await GetRequestServices().getDashboardData(
       context: context,
     );
     setState(() {
+      String fullName = dashboardData['fullName'];
+      userName = fullName.isNotEmpty ? fullName.split(' ')[0] : '';
+      profileImage = dashboardData['profilePhoto'];
+      totalInvoices = dashboardData['totalInvoice'];
       inventoryData = dashboardData['inventoryChart'];
-      // for (var item in inventoryData) {
-      //   labels.add(item['name']);
-      //   values.add((item['totalInverntory'] ?? 0).toDouble());
-      // }
-      _isLoading = false;
+      for (var item in inventoryData) {
+        labels.add(item['name']);
+        values.add(double.parse(item['totalInverntory']));
+        // values.add((item['totalInverntory'] ?? 0).toDouble());
+      }
+      isLoading = false;
     });
   }
 
@@ -84,7 +92,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: Platform.isIOS ? 0 : 10),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: Platform.isIOS ? 0 : 10,
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -94,7 +105,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               AppText(
-                                text: 'Hello, Yashwant',
+                                text: 'Hello, ${userName ?? "User"}',
+                                // text: 'Hello, Yashwant',
                                 fontsize: 22,
                                 fontWeight: FontWeight.bold,
                                 textColor: AppColor.white,
@@ -110,11 +122,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ],
                           ),
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: AssetImage(ImageConstant.menAvatar4),
-                            // backgroundImage: AssetImage(ImageConstant.femaleAvatar),
-                          ),
+                          profileImage != null
+                              ? Container(
+                                height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    width: 2.5,
+                                    color: AppColor.lightYellow,
+                                  ),
+                                  image: DecorationImage(
+                                    image: NetworkImage(
+                                      "${ServiceUrl.baseUrl}/v1/$profileImage",
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                              : CircleAvatar(
+                                radius: 30,
+                                backgroundImage: AssetImage(
+                                  ImageConstant.menAvatar4,
+                                ),
+                                // backgroundImage: AssetImage(ImageConstant.femaleAvatar),
+                              ),
                         ],
                       ),
                     ),
@@ -169,9 +201,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     decoration: BoxDecoration(
                       color: AppColor.white,
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          spreadRadius: -1,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: _buildInventoryBarChart(),
                   ),
+                  appSpaces.spaceForHeight40,
                 ],
               ),
             ),
@@ -201,7 +242,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   SizedBox(height: 2),
                   AppText(
-                    text: "25",
+                    text: "${totalInvoices ?? "0"}",
                     fontsize: 24,
                     fontWeight: FontWeight.w600,
                     textColor: AppColor.textBlack,
@@ -278,6 +319,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildInventoryBarChart() {
+    if (isLoading) {
+      return _buildInventoryChartSkeleton();
+    }
+
     return AspectRatio(
       aspectRatio: 1.4,
       child: BarChart(
@@ -294,7 +339,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 showTitles: true,
                 interval: 20,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  // if (value % 20 == 0) {
                   return Text(
                     value.toInt().toString(),
                     style: TextStyle(
@@ -303,8 +347,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   );
-                  // }
-                  // return Container();
                 },
               ),
             ),
@@ -312,6 +354,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
+                // reservedSize: 30,maxIncluded: false, minIncluded: true,
                 showTitles: true,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   return SideTitleWidget(
@@ -330,12 +373,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       rotationQuarterTurns: 0,
                     ),
                     space: 4,
-                    child: AppText(
-                      text: labels.length > value.toInt() ? labels[value.toInt()] : '',
-                      // text: labels[value.toInt()],
-                      fontsize: 10,
-                      fontWeight: FontWeight.w500,
-                      textAlign: TextAlign.center,
+                    child: SizedBox(
+                      width: 40,
+                      child: AppText(
+                        text:
+                            labels.length > value.toInt()
+                                ? labels[value.toInt()]
+                                : '',
+                        // text:
+                        //     labels.length > value.toInt()
+                        //         ? labels[value.toInt()]
+                        //         : '',
+                        fontsize: 10,
+                        fontWeight: FontWeight.w500,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        softwrap: true,
+                        overflow: TextOverflow.visible,
+                      ),
                     ),
                   );
                 },
@@ -346,11 +401,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           barGroups:
               values.asMap().entries.map((entry) {
                 int index = entry.key;
-                double height = entry.value;
+                double? height = entry.value;
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
+                      // toY: double.parse(height),
                       toY: height,
                       width: 24,
                       borderRadius: BorderRadius.circular(4),
@@ -370,6 +426,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildInventoryChartSkeleton() {
+    return AspectRatio(
+      aspectRatio: 1.4,
+      child: BarChart(
+        BarChartData(
+          groupsSpace: 40,
+          alignment: BarChartAlignment.spaceEvenly,
+          maxY: 100,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: FlTitlesData(
+            show: true,
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return SizedBox(width: 20);
+                },
+              ),
+            ),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return SizedBox(height: 15);
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: List.generate(6, (index) {
+            return BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: 100,
+                  width: 24,
+                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.grey.shade300,
+                ),
+              ],
+            );
+          }),
+          gridData: FlGridData(show: false),
+        ),
+      ),
+    );
+  }
 }
-
-

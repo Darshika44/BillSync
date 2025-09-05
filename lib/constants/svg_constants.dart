@@ -28,6 +28,8 @@ class SvgConstants {
   static String editProfileIcon = '$svgPath/edit_profile_icon.svg';
   static String helpAndSupportIcon = '$svgPath/help_and_support_icon.svg';
   static String faqIcon = '$svgPath/faq_icon.svg';
+  static String termsIcon = '$svgPath/terms_conditions_icon.svg';
+  static String changeLogoIcon = '$svgPath/change_logo_icon.svg';
   static String privacyPolicyIcon = '$svgPath/privacy_policy_icon.svg';
  
   // inventory screen
@@ -35,4 +37,6 @@ class SvgConstants {
   static String addInventoryIcon = '$svgPath/add_inventory_icon.svg';
   static String subtractInventoryIcon = '$svgPath/subtract_inventory_icon.svg';
 
+  // invoices screen
+  // static String downloadIcon = '$svgPath/download_icon.svg';
 }

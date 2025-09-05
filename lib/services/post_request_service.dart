@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:bill_sync_app/constants/app_constant.dart';
 import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/request.dart';
@@ -76,7 +78,56 @@ class PostRequestServices {
     } catch (e) {
       setLoader(ref, false);
       Utils.errorSnackBar('Something Went Wrong', context);
-      AppConst.showConsoleLog("Error in creating training: $e");
+      AppConst.showConsoleLog("Error in updating profile: $e");
+      return null;
+    }
+  }
+
+  Future<ApiResponse?> updateTermsAndConditions({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String url,
+    required Map<String, dynamic> body,
+  }) async {
+    setLoader(ref, true);
+    try {
+      final response = await RequestUtils().postRequest(
+        url: url,
+        method: "PUT",
+        body: body,
+      );
+      AppConst.showConsoleLog(response);
+      setLoader(ref, false);
+      return response;
+    } catch (e) {
+      setLoader(ref, false);
+      Utils.errorSnackBar('Something Went Wrong', context);
+      AppConst.showConsoleLog("Error in updating terms and conditions: $e");
+      return null;
+    }
+  }
+
+  Future<ApiResponse?> updateLogo({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String url,
+    required Map<String, dynamic> imageMap,
+  }) async {
+    setLoader(ref, true);
+    try {
+      final response = await RequestUtils().formDataPostRequest(
+        url: url,
+        method: "POST",
+        fields: {},
+        imageMap: imageMap,
+      );
+      AppConst.showConsoleLog(response);
+      setLoader(ref, false);
+      return response;
+    } catch (e) {
+      setLoader(ref, false);
+      Utils.errorSnackBar('Something Went Wrong', context);
+      AppConst.showConsoleLog("Error in updating logo: $e");
       return null;
     }
   }

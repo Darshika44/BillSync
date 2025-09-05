@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'package:bill_sync_app/constants/app_constant.dart';
 import 'package:bill_sync_app/services/base_url.dart';
@@ -39,12 +39,13 @@ class GetRequestServices {
     }
   }
 
-  Future<List<dynamic>> getInvoicesList({required BuildContext context}) async {
+  Future<List<dynamic>> getInvoicesList({required BuildContext context, required String url}) async {
     try {
       List<dynamic> list = [];
 
       final response = await RequestUtils().getRequest(
-        url: ServiceUrl.getAllInvoicesUrl,
+        url: url,
+        // url: ServiceUrl.getAllInvoicesUrl,
       );
 
       if (response.statusCode == 200) {
@@ -61,12 +62,14 @@ class GetRequestServices {
 
   Future<List<dynamic>> getInventoryList({
     required BuildContext context,
+    required String url,
   }) async {
     try {
       List<dynamic> list = [];
 
       final response = await RequestUtils().getRequest(
-        url: ServiceUrl.getAllInventoryUrl,
+        url: url,
+        // url: ServiceUrl.getAllInventoryUrl,
       );
 
       if (response.statusCode == 200) {
@@ -125,21 +128,53 @@ class GetRequestServices {
     }
   }
 
-  Future<ApiResponse?> getVendorStatus({
+  Future<ApiResponse?> getTermsAndConditions({
     required BuildContext context,
-    required String url,
   }) async {
     try {
       final response = await RequestUtils().getRequest(
-        url: url,
-        // url: ServiceUrl.getVendorDetailstUrl,
+        url: ServiceUrl.getTermsAndConditionsUrl,
       );
 
       return response;
     } catch (e) {
       Utils.errorSnackBar('Something Went Wrong', context);
-      print("Error in fetching vendor data: $e");
+      print("Error in fetching terms and conditions: $e");
       return null;
     }
   }
+
+  Future<ApiResponse?> getLogo({
+    required BuildContext context,
+  }) async {
+    try {
+      final response = await RequestUtils().getRequest(
+        url: ServiceUrl.getLogoUrl,
+      );
+
+      return response;
+    } catch (e) {
+      Utils.errorSnackBar('Something Went Wrong', context);
+      print("Error in fetching logo: $e");
+      return null;
+    }
+  }
+
+  // Future<ApiResponse?> getVendorStatus({
+  //   required BuildContext context,
+  //   required String url,
+  // }) async {
+  //   try {
+  //     final response = await RequestUtils().getRequest(
+  //       url: url,
+  //       // url: ServiceUrl.getVendorDetailstUrl,
+  //     );
+
+  //     return response;
+  //   } catch (e) {
+  //     Utils.errorSnackBar('Something Went Wrong', context);
+  //     print("Error in fetching vendor data: $e");
+  //     return null;
+  //   }
+  // }
 }

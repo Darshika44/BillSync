@@ -49,7 +49,7 @@ class AuthService {
     } catch (e) {
       setLoader(ref, false);
       Utils.errorSnackBar('Something Went Wrong', context);
-      print("Error in login: $e");
+      AppConst.showConsoleLog("Error in login: $e");
       return null;
     }
   }
@@ -84,7 +84,7 @@ class AuthService {
     } catch (e) {
       setLoader(ref, false);
       Utils.errorSnackBar('Something Went Wrong', context);
-      print("Error in otp varification: $e");
+      AppConst.showConsoleLog("Error in otp varification: $e");
       return null;
     }
   }
@@ -114,7 +114,7 @@ class AuthService {
       return response;
     } catch (e) {
       setLoader(ref, false);
-      print("Error in signUp: $e");
+      AppConst.showConsoleLog("Error in signUp: $e");
       return null;
     }
   }
@@ -147,7 +147,7 @@ class AuthService {
     } catch (e) {
       setLoader(ref, false);
       Utils.errorSnackBar('Something Went Wrong', context);
-      print("Error in sending otp: $e");
+      AppConst.showConsoleLog("Error in sending otp: $e");
       return null;
     }
   }
@@ -178,7 +178,7 @@ class AuthService {
     } catch (e) {
       setLoader(ref, false);
       Utils.errorSnackBar('Something Went Wrong', context);
-      print("Error in changing password: $e");
+      AppConst.showConsoleLog("Error in changing password: $e");
       return null;
     }
   }

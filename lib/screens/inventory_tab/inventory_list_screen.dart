@@ -3,6 +3,7 @@ import 'package:bill_sync_app/customs/custom_appbar.dart';
 import 'package:bill_sync_app/customs/custom_loader.dart';
 import 'package:bill_sync_app/extensions/extension.dart';
 import 'package:bill_sync_app/screens/inventory_tab/track_inventory_screen.dart';
+import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/get_request_service.dart';
 import 'package:bill_sync_app/utils/app_spaces.dart';
 import 'package:bill_sync_app/utils/text_utility.dart';
@@ -28,23 +29,43 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
 
   bool isLoading = false;
   List inventoryList = [];
+  dynamic userDetail = {};
+  String? userId;
 
-  void _fetchInventoryList() async {
+  void _getUserDetails() async {
     setState(() {
       isLoading = true;
     });
+    final response = await GetRequestServices().getUserDetails(
+      context: context,
+    );
+    if (response != null && response.statusCode == 200) {
+      userDetail = response.data['data'];
+      userId = userDetail["id"];
+      _fetchInventoryList();
+    }
+    setState(() {
+      // isLoading = false;
+    });
+  }
+
+  void _fetchInventoryList() async {
+    // setState(() {
+    //   isLoading = true;
+    // });
     inventoryList = await GetRequestServices().getInventoryList(
       context: context,
+      url: "${ServiceUrl.getAllInventoryUrl}?userId=$userId",
+      // url: ServiceUrl.getAllInventoryUrl,
     );
     setState(() {
       isLoading = false;
     });
   }
 
-
   @override
   void initState() {
-    _fetchInventoryList();
+    _getUserDetails();
     super.initState();
   }
 
@@ -52,52 +73,59 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar(title: "Inventory"),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-            child: Column(
-              children: [
-                isLoading
-                    ? Center(child: SizedBox(height: 500, child: Loader()))
-                    : inventoryList.isEmpty
-                    ? NoDataFound(height: 500)
-                    : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: inventoryList.length,
-                      itemBuilder: (context, index) {
-                        final item = inventoryList[index];
-                        return InventoryCard(
-                          onArrowTap: () {
-                            context.push(
-                              TrackInventoryScreen(
-                                inventoryId: item['id'],
-                                onRefreshInventoryList: _fetchInventoryList,
-                              ),
+      body:
+          isLoading
+              ? Center(child: SizedBox(child: Loader()))
+              : inventoryList.isEmpty
+              ? NoDataFound(height: 500)
+              : SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                    child: Column(
+                      children: [
+                        // isLoading
+                        //     ? Center(child: SizedBox(height: 500, child: Loader()))
+                        //     : inventoryList.isEmpty
+                        //     ? NoDataFound(height: 500)
+                        //     :
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: inventoryList.length,
+                          itemBuilder: (context, index) {
+                            final item = inventoryList[index];
+                            return InventoryCard(
+                              onArrowTap: () {
+                                context.push(
+                                  TrackInventoryScreen(
+                                    inventoryId: item['id'],
+                                    onRefreshInventoryList: _fetchInventoryList,
+                                  ),
+                                );
+                              },
+                              itemName: item['name'],
+                              unit: item['weightType'],
+                              isInventoryEmpty: item['inventory']['inventoryCount'] == "0",
+                              // isInventoryEmpty: item['inventory'] == null,
+                              inStock:
+                                  item['inventory'] != null
+                                      ? item['inventory']['inventoryCount']
+                                      : null,
                             );
+                            // return InventoryCard(
+                            //   itemName: item['itemName'],
+                            //   unit: item['unit'],
+                            //   inStock: item['inStock'],
+                            // );
                           },
-                          itemName: item['name'],
-                          unit: item['weightType'],
-                          isInventoryEmpty: item['inventory'] == null,
-                          inStock:
-                              item['inventory'] != null
-                                  ? item['inventory']['inventoryCount']
-                                  : null,
-                        );
-                        // return InventoryCard(
-                        //   itemName: item['itemName'],
-                        //   unit: item['unit'],
-                        //   inStock: item['inStock'],
-                        // );
-                      },
+                        ),
+                        appSpaces.spaceForHeight30,
+                      ],
                     ),
-                appSpaces.spaceForHeight30,
-              ],
-            ),
-          ),
-        ),
-      ),
+                  ),
+                ),
+              ),
     );
   }
 }
@@ -126,6 +154,14 @@ class InventoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColor.white,
         borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 6,
+            spreadRadius: -2,
+            offset: Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         children: [

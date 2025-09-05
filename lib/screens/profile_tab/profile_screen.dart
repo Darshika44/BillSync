@@ -11,6 +11,7 @@ import 'package:bill_sync_app/screens/profile_tab/faq_and_query_screen.dart';
 import 'package:bill_sync_app/screens/profile_tab/help_and_support_screen.dart';
 import 'package:bill_sync_app/screens/profile_tab/privacy_policy_screen.dart';
 import 'package:bill_sync_app/screens/profile_tab/terms_and_condition_screen.dart';
+import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/get_request_service.dart';
 import 'package:bill_sync_app/utils/local_storage.dart';
 import 'package:bill_sync_app/utils/text_utility.dart';
@@ -28,24 +29,28 @@ class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
- dynamic userDetail = {};
- String? userName;
+
+dynamic userDetail = {};
+String? userName;
+String? profileFromServer;
+bool isLoading = false;
 
 class _ProfileScreenState extends State<ProfileScreen> {
   void _getUserDetails() async {
-    // setState(() {
-    //   _isLoading = true;
-    // });
+    setState(() {
+      isLoading = true;
+    });
     final response = await GetRequestServices().getUserDetails(
       context: context,
     );
     if (response != null && response.statusCode == 200) {
       userDetail = response.data['data'];
       userName = userDetail["fullName"] ?? "";
+      profileFromServer = userDetail["profilePhoto"];
     }
-    // setState(() {
-    //   _isLoading = false;
-    // });
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -53,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _getUserDetails();
     super.initState();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +83,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: CircleAvatar(
-                          backgroundImage: AssetImage(ImageConstant.menAvatar4),
+                          backgroundImage:
+                              profileFromServer != null
+                                  ? NetworkImage(
+                                    "${ServiceUrl.baseUrl}/v1/$profileFromServer",
+                                  )
+                                  : AssetImage(ImageConstant.menAvatar4),
+                          // backgroundImage: AssetImage(ImageConstant.menAvatar4),
                         ),
                       ),
                     ),
@@ -98,7 +109,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 appSpaces.spaceForHeight50,
                 AccordianTile(
                   onTap: () {
-                    context.push(EditProfileScreen());
+                    context.push(
+                      EditProfileScreen(onRefreshProfile: _getUserDetails),
+                    );
                   },
                   icon: SvgConstants.editProfileIcon,
                   title: "Edit Profile",
@@ -127,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     context.push(TermsAndConditionScreen());
                   },
-                  icon: SvgConstants.faqIcon,
+                  icon: SvgConstants.termsIcon,
                   title: "Terms & Conditions",
                 ),
                 // appSpaces.spaceForHeight15,
@@ -136,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     context.push(ChangeLogoScreen());
                   },
-                  icon: SvgConstants.faqIcon,
+                  icon: SvgConstants.changeLogoIcon,
                   title: "Change Logo",
                 ),
                 // appSpaces.spaceForHeight15,
@@ -179,6 +192,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: AppColor.white,
           borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 6,
+              spreadRadius: -2,
+              offset: Offset(0, 0),
+            ),
+          ],
         ),
         child: Row(
           children: [

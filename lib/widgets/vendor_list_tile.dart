@@ -70,7 +70,7 @@ class VendorProfilePlaceholder extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: AppColor.black.withOpacity(0.15),
+            color: AppColor.black.withValues(alpha: 0.15),
             blurRadius: 5,
             spreadRadius: 0,
             offset: const Offset(0, 0),
@@ -79,7 +79,7 @@ class VendorProfilePlaceholder extends StatelessWidget {
       ),
       child: Icon(
         Icons.person_2_rounded, 
-        color: AppColor.blue.withOpacity(0.5)
+        color: AppColor.blue.withValues(alpha: 0.5)
       ),
     );
   }

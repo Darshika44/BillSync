@@ -1,16 +1,23 @@
+import 'package:bill_sync_app/constants/app_constant.dart';
 import 'package:bill_sync_app/constants/color_constants.dart';
 import 'package:bill_sync_app/constants/image_constants.dart';
+import 'package:bill_sync_app/constants/svg_constants.dart';
 import 'package:bill_sync_app/customs/custom_loader.dart';
 import 'package:bill_sync_app/screens/invoice_tab/create_invoice_screen.dart';
+import 'package:bill_sync_app/services/base_url.dart';
 import 'package:bill_sync_app/services/get_request_service.dart';
+import 'package:bill_sync_app/utils/common_utils.dart';
 import 'package:bill_sync_app/utils/text_utility.dart';
 import 'package:bill_sync_app/widgets/no_data_found.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:bill_sync_app/customs/custom_appbar.dart';
 import 'package:bill_sync_app/customs/custom_field.dart';
 import 'package:bill_sync_app/extensions/extension.dart';
 import 'package:bill_sync_app/utils/app_spaces.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class InvoicesListScreen extends StatefulWidget {
   const InvoicesListScreen({super.key});
@@ -20,17 +27,67 @@ class InvoicesListScreen extends StatefulWidget {
 }
 
 class _InvoicesListScreenState extends State<InvoicesListScreen> {
+  final TextEditingController _searchController = TextEditingController();
   bool isLoading = false;
+  bool isPdfLoading = false;
   List invoiceList = [];
 
-  void _fetchInvoicesList() async {
+  void _fetchInvoicesList({String search = ""}) async {
     setState(() {
       isLoading = true;
     });
-    invoiceList = await GetRequestServices().getInvoicesList(context: context);
+    invoiceList = await GetRequestServices().getInvoicesList(
+      context: context,
+      url: "${ServiceUrl.getAllInvoicesUrl}?searchData=$search",
+    );
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> downloadAndOpenPdf({
+    required String url,
+    required String token,
+    String fileName = "invoice.pdf",
+  }) async {
+    setState(() {
+      isPdfLoading = true;
+    });
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fileName';
+
+      Dio dio = Dio();
+      dio.options.headers['Authorization'] = 'Bearer $token';
+      AppConst.showConsoleLog('Downloading PDF from: $url');
+      final response = await dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            double progress = (received / total) * 100;
+            AppConst.showConsoleLog(
+              'Downloading: ${progress.toStringAsFixed(0)}%',
+            );
+          }
+        },
+      );
+      if (response.statusCode == 200) {
+        Utils.snackBar("Invoice downloaded successfully", context);
+      } else {
+        Utils.errorSnackBar("Failed to download invoice", context);
+      }
+      setState(() {
+        isPdfLoading = false;
+      });
+      AppConst.showConsoleLog('PDF downloaded to: $filePath');
+      OpenFilex.open(filePath);
+    } catch (e) {
+      setState(() {
+        isPdfLoading = false;
+      });
+      AppConst.showConsoleLog('Error downloading or opening the file: $e');
+    }
   }
 
   @override
@@ -45,7 +102,9 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
       appBar: customAppBar(title: "Invoices"),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push(CreateInvoiceScreen());
+          context.push(
+            CreateInvoiceScreen(onRefreshInvoiceList: _fetchInvoicesList),
+          );
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         backgroundColor: AppColor.yellow.withValues(alpha: 0.8),
@@ -61,11 +120,14 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
               // appSpaces.spaceForHeight20,
               customField(
                 hintText: 'Search',
+                controller: _searchController,
                 borderRadius: BorderRadius.circular(40),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 0,
                 ),
+                fillColor: AppColor.white,
+                filled: true,
                 keyboardType: TextInputType.text,
                 // borderColor: Color(0xFF98A2AD),
                 // enabledBordercolor: AppColor.secondary,
@@ -76,7 +138,22 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                   ),
                   child: SvgPicture.asset("assets/svg/search.svg"),
                 ),
+                onChanged: (value) {
+                  _fetchInvoicesList(search: _searchController.text);
+                },
               ),
+              // appSpaces.spaceForHeight15,
+              // Row(
+              //   children: [
+              //     AppText(
+              //       text: "Filter ",
+              //       fontsize: 16,
+              //       fontWeight: FontWeight.bold,
+              //       textColor: AppColor.primary,
+              //     ),
+              //     Icon(Icons.calendar_month_outlined, color: AppColor.primary, size: 21,)
+              //   ],
+              // ),
               appSpaces.spaceForHeight25,
               isLoading
                   ? SizedBox(height: 450, child: Loader())
@@ -89,9 +166,10 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
                     itemBuilder: (context, index) {
                       final invoice = invoiceList[index];
                       return _buildInvoiCard(
+                        invoieId: invoice["id"],
                         invoiceNumber: invoice["invoiceNo"],
-                        invoiceDate:
-                            invoice["invoiceDate"].toString().toDDMMYYYY(),
+                        invoiceDate: invoice["invoiceDate"].toString(),
+                        // invoice["invoiceDate"].toString().toDDMMYYYY(),
                         itemImage: invoice["productPhoto"],
                         partyName: invoice["partyName"],
                         invoicevalue: invoice["finalPrice"],
@@ -106,6 +184,7 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
   }
 
   Widget _buildInvoiCard({
+    String? invoieId,
     String? invoiceNumber,
     String? invoiceDate,
     String? itemImage,
@@ -158,37 +237,100 @@ class _InvoicesListScreenState extends State<InvoicesListScreen> {
               ClipRRect(
                 borderRadius: BorderRadiusGeometry.circular(2),
                 child:
-                // itemImage != null
-                //     ? Image.network(itemImage)
-                //     :
-                Image.asset(
-                  ImageConstant.profilePlaceholder,
-                  height: 68,
-                  width: 68,
-                  fit: BoxFit.cover,
-                ),
+                    itemImage != null
+                        ? Image.network(
+                          "${ServiceUrl.baseUrl}/v1/$itemImage",
+                          height: 68,
+                          width: 68,
+                          fit: BoxFit.cover,
+                        )
+                        : Image.asset(
+                          ImageConstant.emptyImagePlaceholder,
+                          height: 68,
+                          width: 68,
+                          fit: BoxFit.cover,
+                        ),
               ),
               appSpaces.spaceForWidth15,
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    text: "Party Name : ${partyName ?? "not available"}",
-                    // text: "Party Name : Shreenath Gold Pvt. Ltd.",
-                    fontsize: 12,
-                    fontWeight: FontWeight.w400,
-                    textColor: Colors.grey.shade800,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  appSpaces.spaceForHeight20,
-                  AppText(
-                    text: "Invoice Value : ₹${invoicevalue ?? "0"}",
-                    // text: "Invoice Value : ₹10,0000",
-                    fontsize: 12,
-                    fontWeight: FontWeight.w400,
-                    textColor: Colors.grey.shade800,
-                  ),
-                ],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: "Party Name : ${partyName ?? "not available"}",
+                      // text: "Party Name : Shreenath Gold Pvt. Ltd.",
+                      fontsize: 12,
+                      fontWeight: FontWeight.w400,
+                      textColor: Colors.grey.shade800,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    appSpaces.spaceForHeight5,
+                    AppText(
+                      text: "Invoice Value : ₹${invoicevalue ?? "0"}",
+                      // text: "Invoice Value : ₹10,0000",
+                      fontsize: 12,
+                      fontWeight: FontWeight.w400,
+                      textColor: Colors.grey.shade800,
+                    ),
+                    // appSpaces.spaceForHeight5,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            height: 35,
+                            width: 35,
+                            padding: EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColor.yellow.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: SvgPicture.asset(
+                              SvgConstants.visibilitySvg,
+                              colorFilter: ColorFilter.mode(
+                                AppColor.yellow,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            downloadAndOpenPdf(
+                              url: "${ServiceUrl.downloadInvoiceUrl}/$invoieId",
+                              token: "${AppConst.getAccessToken()}",
+                            );
+                          },
+                          child: Container(
+                            height: 35,
+                            width: 35,
+                            padding: EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.download,
+                                color: Colors.green.shade600,
+                                size: 22,
+                              ),
+                            ),
+                            // SvgPicture.asset(
+                            //   SvgConstants.downloadIcon,
+                            //   colorFilter: ColorFilter.mode(
+                            //     Colors.green.shade600,
+                            //     BlendMode.srcIn,
+                            //   ),
+                            // ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

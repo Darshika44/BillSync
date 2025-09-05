@@ -26,19 +26,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "image": ImageConstant.onboard1,
       // "image": SvgConstants.add1Svg,
       "headingText": "Say Goodbye to\nPaper Invoices",
-      "text": "Create professional digital invoices in seconds. Save time, reduce errors, and go completely paperless with our easy-to-use invoicing system.",
+      "text":
+          "Create professional digital invoices in seconds. Save time, reduce errors, and go completely paperless with our easy-to-use invoicing system.",
     },
     {
       "image": ImageConstant.onboard2,
       // "image": SvgConstants.add2Svg,
       "headingText": "Smart Inventory\nManagement",
-      "text": "Track and manage your jewellery stock with ease. Stay updated on inventory levels and make informed decisions to run your business smoothly.",
+      "text":
+          "Track and manage your jewellery stock with ease. Stay updated on inventory levels and make informed decisions to run your business smoothly.",
     },
     {
       "image": ImageConstant.onboard3,
       // "image": SvgConstants.add3Svg,
       "headingText": "Built for Jewellery\nManufacturers",
-      "text": "Specially designed for gold jewellery businesses. From production to billing, manage everything in one place—secure, simple, and efficient.",
+      "text":
+          "Specially designed for gold jewellery businesses. From production to billing, manage everything in one place—secure, simple, and efficient.",
     },
   ];
 
@@ -46,31 +49,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void initState() {
-    // _startAutoScroll();
+    _startAutoScroll();
     super.initState();
   }
 
-  // void _resetAndStartTimer() {
-  //   _autoScrollTimer?.cancel();
-  //   _startAutoScroll();
-  // }
+  void _resetAndStartTimer() {
+    _autoScrollTimer?.cancel();
+    _startAutoScroll();
+  }
 
-  // void _startAutoScroll() {
-  //   _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-  //     if (currentIndex < onboardingData.length - 1) {
-  //       _pageController.nextPage(
-  //         duration: const Duration(milliseconds: 300),
-  //         curve: Curves.easeInOut,
-  //       );
-  //     } else {
-  //       _pageController.animateToPage(
-  //         0,
-  //         duration: const Duration(milliseconds: 300),
-  //         curve: Curves.easeInOut,
-  //       );
-  //     }
-  //   });
-  // }
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (currentIndex < onboardingData.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -84,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 18),
           child: Column(
             children: [
               Expanded(
@@ -93,7 +96,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   controller: _pageController,
                   itemCount: onboardingData.length,
                   onPageChanged: (index) {
-                    // _resetAndStartTimer();
+                    _resetAndStartTimer();
                     setState(() {
                       currentIndex = index;
                     });
@@ -102,9 +105,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     final data = onboardingData[index];
                     return Column(
                       children: [
+                        appSpaces.spaceForHeight5,
                         AppText(
                           text: "billsync",
-                          textColor: AppColor.blueTextColor,
+                          textColor: AppColor.textBlack,
                           fontsize: 28,
                           fontWeight: FontWeight.w500,
                           fontfamily: GoogleFonts.megrim().fontFamily,
@@ -113,16 +117,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Image.asset(
                           data["image"]!,
                           fit: BoxFit.cover,
-                          height: 235,
-                          width: 500,
+                          height:
+                              index == onboardingData.length - 3 ? 260 : 250,
+                          width: index == onboardingData.length - 3 ? 650 : 600,
+                          // height: 250,
+                          // width: 600,
                         ),
-                        // Center(
-                        //   child: SvgPicture.asset(
-                        //     data["image"]!,
-                        //     fit: BoxFit.contain,
-                        //     height: 300
-                        //   ),
-                        // ),
                         Spacer(),
                         Column(
                           children: [
@@ -153,11 +153,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 onboardingData.length,
                                 (index) => AnimatedContainer(
                                   duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                                  width: currentIndex == index ? 14 : 8,
-                                  height: currentIndex == index ? 14 : 8,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
+                                  width: currentIndex == index ? 15 : 8,
+                                  height: currentIndex == index ? 15 : 8,
                                   decoration: BoxDecoration(
-                                    color: currentIndex == index ? AppColor.primary : AppColor.lightGrey,
+                                    color:
+                                        currentIndex == index
+                                            ? AppColor.primary
+                                            : Colors.grey.shade400,
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
@@ -168,7 +173,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             CustomButton(
                               width: 130,
                               // width: index == onboardingData.length - 1 ? 150 : 110,
-                              text: index == onboardingData.length - 1 ? 'Get Started' : 'Next',
+                              text:
+                                  index == onboardingData.length - 1
+                                      ? 'Get Started'
+                                      : 'Next',
                               // rightIcon: Icons.arrow_circle_right_outlined,
                               onPressed: () {
                                 if (index < onboardingData.length - 1) {
@@ -177,7 +185,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     curve: Curves.easeInOut,
                                   );
                                 } else {
-                                  context.pushReplacementNamed(RoutePath.loginScreen);
+                                  context.pushReplacementNamed(
+                                    RoutePath.loginScreen,
+                                  );
                                 }
                               },
                             ),

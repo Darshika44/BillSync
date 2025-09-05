@@ -16,6 +16,7 @@ class ServiceUrl {
   // invoices
   static const getAllInvoicesUrl = "$baseUrl/v1/vendor/get-all-invoice";
   static const createInvoiceUrl = "$baseUrl/v1/vendor/create-invoice";
+  static const downloadInvoiceUrl = "$baseUrl/v1/vendor/download-invoice";
 
   // inventory
   static const getAllInventoryUrl = "$baseUrl/v1/vendor/get-all-categories";
@@ -30,5 +31,10 @@ class ServiceUrl {
   //profile
   static const getUserDetailsUrl = "$baseUrl/v1/auth/current-user";
   static const updateUserProfileUrl = "$baseUrl/v1/auth/update-profile";
+  static const getTermsAndConditionsUrl = "$baseUrl/v1/setting/terms-condition";
+  static const updateTermsAndConditionsUrl = "$baseUrl/v1/setting/terms-condition";
+  static const createLogoUrl = "$baseUrl/v1/setting/create-logo";
+  static const getLogoUrl = "$baseUrl/v1/setting/get-logo";
+  static const updateLogoUrl = "$baseUrl/v1/setting/update-logo";
 
 }

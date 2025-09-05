@@ -19,5 +19,6 @@ class ImageConstant {
   static String menAvatar3 = '$imagePath/men-avatar-3.jpg';
   static String menAvatar4 = '$imagePath/men-avatar-4.jpeg';
   static String noDataFound = '$imagePath/no-data-found.png';
+  static String emptyImagePlaceholder = '$imagePath/empty-image-placeholder.webp';
   
 }

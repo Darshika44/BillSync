@@ -69,10 +69,7 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
       _fetchInventoryList(widget.inventoryId);
     } else {
       context.pop();
-      Utils.errorSnackBar(
-        "Failed to add inventory",
-        context,
-      );
+      Utils.errorSnackBar("Failed to add inventory", context);
     }
   }
 
@@ -113,6 +110,7 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
                         final item = historyList[index];
                         return _buildTrackInventoryCard(
                           itemName: item['category']['name'],
+                          itemCode: item['billNo'],
                           date: item['createdAt'].toString().toDDMMYYYY(),
                           isInventoryAdded: item['isPositive'],
                           stockValue: item['value'],
@@ -147,6 +145,7 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
   Widget _buildTrackInventoryCard({
     bool isInventoryAdded = false,
     String? itemName,
+    String? itemCode,
     String? date,
     String? stockValue,
   }) {
@@ -156,6 +155,14 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
       decoration: BoxDecoration(
         color: AppColor.white,
         borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 6,
+            spreadRadius: -2,
+            offset: Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -172,11 +179,36 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
                 fontsize: 16,
                 fontWeight: FontWeight.bold,
               ),
-              appSpaces.spaceForHeight10,
+              // appSpaces.spaceForHeight10,
+              if (isInventoryAdded == false) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppText(
+                      text: "Item no - ",
+                      // text: "INV10021",
+                      fontsize: 14,
+                      fontWeight: FontWeight.w500,
+                      textColor: AppColor.textBlack,
+                      height: 1.6,
+                    ),
+                    AppText(
+                      text: itemCode ?? "not available",
+                      // text: "INV10021",
+                      fontsize: 14,
+                      fontWeight: FontWeight.w500,
+                      textColor: AppColor.primary,
+                      height: 1.6,
+                    ),
+                  ],
+                ),
+              ] else ...[
+                appSpaces.spaceForHeight10,
+              ],
               AppText(
                 text: date ?? "",
                 // text: "12/07/2025",
-                fontsize: 12,
+                fontsize: 12.5,
                 fontWeight: FontWeight.w400,
                 textColor: AppColor.textGreyColor,
               ),
@@ -253,7 +285,7 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
                         hintText: "Enter Quantity",
                         controller: _quantityController,
                         filled: true,
-                        keyboardType: TextInputType.text,
+                        keyboardType: TextInputType.number,
                         validator: (value) {
                           return validateForNormalFeild(
                             value: value,
@@ -299,6 +331,3 @@ class _TrackInventoryScreenState extends ConsumerState<TrackInventoryScreen> {
     );
   }
 }
-
-
-

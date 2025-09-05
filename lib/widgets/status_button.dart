@@ -64,7 +64,7 @@ class _StatusButtonState extends State<StatusButton> {
 class StatusBadge extends StatelessWidget {
   final String status;
 
-  const StatusBadge({Key? key, required this.status}) : super(key: key);
+  const StatusBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
